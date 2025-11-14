@@ -16,7 +16,7 @@ export class RabbitMQApiClient {
     this.apiUrl = config.apiUrl;
     this.timeout = config.timeout || 10000;
     
-    // Crea l'header di autenticazione Basic se username e password sono forniti
+    // Create Basic authentication header if username and password are provided
     if (config.username && config.password) {
       const credentials = Buffer.from(`${config.username}:${config.password}`).toString('base64');
       this.authHeader = `Basic ${credentials}`;
@@ -24,9 +24,9 @@ export class RabbitMQApiClient {
   }
 
   /**
-   * Recupera i dati dei consumatori stream da RabbitMQ API
-   * @returns Promise con l'array di StreamConsumer
-   * @throws Error se la richiesta fallisce
+   * Fetches stream consumer data from RabbitMQ API
+   * @returns Promise with the StreamConsumer array
+   * @throws Error if the request fails
    */
   async fetchStreamConsumers(): Promise<StreamConsumer[]> {
     try {
@@ -34,7 +34,7 @@ export class RabbitMQApiClient {
         'Accept': 'application/json'
       };
 
-      // Aggiungi l'header di autenticazione se presente
+      // Add authentication header if present
       if (this.authHeader) {
         headers['Authorization'] = this.authHeader;
       }
@@ -53,7 +53,7 @@ export class RabbitMQApiClient {
       return Array.isArray(data) ? data : [];
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Errore nel recupero dati da RabbitMQ API: ${errorMessage}`);
+      throw new Error(`Error fetching data from RabbitMQ API: ${errorMessage}`);
     }
   }
 }

@@ -28,7 +28,7 @@ export interface StreamConsumer {
   properties?: ConsumerProperties;
   queue?: Queue;
   subscription_id?: number;
-  // Campi legacy per compatibilità
+  // Legacy fields for compatibility
   stream?: string;
   name?: string;
   consumer_tag?: string;

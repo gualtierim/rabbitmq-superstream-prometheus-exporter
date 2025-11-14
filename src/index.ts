@@ -18,7 +18,7 @@ if (!rabbitmqApiUrl) {
   throw new Error('RABBITMQ_API_URL is not set');
 }
 
-// Inizializza il client API RabbitMQ
+// Initialize RabbitMQ API client
 const rabbitMQClient = new RabbitMQApiClient({
   apiUrl: rabbitmqApiUrl,
   timeout: apiTimeout,
@@ -26,10 +26,10 @@ const rabbitMQClient = new RabbitMQApiClient({
   password: rabbitmqPassword
 });
 
-// Crea un nuovo registry per le metriche
+// Create a new metrics registry
 const register = new Registry();
 
-// Inizializza le metriche degli stream
+// Initialize stream metrics
 const streamMetrics = new StreamMetrics(register);
 
 const exporterLastScrape = new Gauge({
@@ -38,12 +38,12 @@ const exporterLastScrape = new Gauge({
   registers: [register]
 });
 
-// Funzione per aggiornare le metriche
+// Function to update metrics
 async function updateMetrics(): Promise<void> {
   try {
     const data = await rabbitMQClient.fetchStreamConsumers();
     if (data.length === 0) {
-      console.warn('Nessun consumer trovato');
+      console.warn('No consumers found');
       return;
     }
 
@@ -52,14 +52,14 @@ async function updateMetrics(): Promise<void> {
       streamMetrics.updateForConsumer(consumer);
     });
   } catch (error) {
-    console.error('Errore nell\'aggiornamento delle metriche:', error);
+    console.error('Error updating metrics:', error);
   }
 
   lastScrapeUnixTimestamp = new Date().getTime();
   exporterLastScrape.set(lastScrapeUnixTimestamp);
 }
 
-// Endpoint per le metriche Prometheus
+// Endpoint for Prometheus metrics
 app.get('/metrics', async (req: Request, res: Response) => {
   try {
     res.set('Content-Type', register.contentType);
@@ -69,7 +69,7 @@ app.get('/metrics', async (req: Request, res: Response) => {
   }
 });
 
-// Endpoint di health check
+// Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   const isOk = lastScrapeUnixTimestamp && lastScrapeUnixTimestamp > Date.now() - (refreshInterval * 3);
   if(!isOk) {
@@ -78,7 +78,7 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', lastScrapeUnixTimestamp: lastScrapeUnixTimestamp });
 });
 
-// Endpoint root
+// Root endpoint
 app.get('/', (req: Request, res: Response) => {
   res.json({
     name: 'RabbitMQ Stream Prometheus Exporter',
@@ -90,13 +90,13 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Funzione di inizializzazione
+// Initialization function
 async function start(): Promise<void> {
-  // Avvia l'aggiornamento periodico delle metriche
-  updateMetrics(); // Prima chiamata immediata
+  // Start periodic metrics update
+  updateMetrics(); // First immediate call
   setInterval(updateMetrics, refreshInterval);
 
-  // Avvia il server
+  // Start the server
   app.listen(port, () => {
     console.log(`RabbitMQ Stream Prometheus Exporter listening on port ${port}`);
     console.log(`API RabbitMQ: ${rabbitmqApiUrl}`);
@@ -105,7 +105,7 @@ async function start(): Promise<void> {
   });
 }
 
-// Gestione graceful shutdown
+// Graceful shutdown handling
 process.on('SIGTERM', () => {
   console.log('Received SIGTERM, shutting down...');
   process.exit(0);
